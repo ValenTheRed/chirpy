@@ -1,15 +1,26 @@
 #!/usr/bin/env bash
 
-# Ensure exactly one argument is provided
-if [ "$#" -ne 1 ]; then
-  echo "Usage: $0 <website-link>"
+# Need at least one argument
+if [ "$#" -lt 1 ]; then
+  echo "Usage: $0 [args-for-program...] <website-link>"
   exit 1
 fi
 
-url="$1"
+# Save all arguments in an array
+args=("$@")
 
-# Remove any trailing slash, then extract the last path component
+# Extract last argument (the URL)
+url="${args[-1]}"
+
+# Remove last argument from array
+unset 'args[-1]'
+
+# Parse last path component as before
 last_component="${url%/}"
 last_component="${last_component##*/}"
 
-bootdev submit "$last_component"
+if [ "$#" -ne 1 ]; then
+    bootdev "${args[@]}" "$last_component"
+else
+    bootdev submit "$last_component"
+fi
