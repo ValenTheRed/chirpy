@@ -10,6 +10,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.Handle("/", http.FileServerFS(root))
+	mux.Handle("/assets/logo.png", http.FileServerFS(root))
 
 	server := http.Server{
 		Addr:    ":8080",
