@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# Ensure exactly one argument is provided
+if [ "$#" -ne 1 ]; then
+  echo "Usage: $0 <website-link>"
+  exit 1
+fi
+
+url="$1"
+
+# Remove any trailing slash, then extract the last path component
+last_component="${url%/}"
+last_component="${last_component##*/}"
+
+bootdev submit "$last_component"
