@@ -41,13 +41,13 @@ func main() {
 		"/app/",
 		cfg.increaseRequestsCount(http.StripPrefix("/app", http.FileServerFS(root))),
 	)
-	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-	mux.Handle("GET /metrics", cfg.logRequestsCount())
-	mux.Handle("POST /reset", cfg.resetRequestsCount())
+	mux.Handle("GET /api/metrics", cfg.logRequestsCount())
+	mux.Handle("POST /api/reset", cfg.resetRequestsCount())
 
 	server := http.Server{
 		Addr:    ":8080",
