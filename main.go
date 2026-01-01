@@ -1,15 +1,21 @@
 package main
 
 import (
+	"ValenTheRed/chirpy/internal/database"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"sync/atomic"
+
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 type apiConfig struct {
 	requestsCount atomic.Int64
+	dbQueries     *database.Queries
 }
 
 func (cfg *apiConfig) increaseRequestsCount(handler http.Handler) http.Handler {
@@ -36,7 +42,16 @@ func (cfg *apiConfig) resetRequestsCount(w http.ResponseWriter, r *http.Request)
 }
 
 func main() {
-	cfg := apiConfig{}
+	godotenv.Load()
+	dbUrl := os.Getenv("DB_URL")
+	db, err := sql.Open("postgres", dbUrl)
+	if err != nil {
+		log.Fatalf("could not connect to db at %v\n", dbUrl)
+	}
+
+	cfg := apiConfig{
+		dbQueries: database.New(db),
+	}
 	root := os.DirFS(".")
 
 	mux := http.NewServeMux()
