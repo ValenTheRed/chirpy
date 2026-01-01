@@ -21,7 +21,14 @@ func (cfg *apiConfig) increaseRequestsCount(handler http.Handler) http.Handler {
 
 func (cfg *apiConfig) logRequestsCount() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write(fmt.Appendf(nil, "Hits: %v", cfg.requestsCount.Load()))
+		w.Header().Set("Content-Type", "text/html")
+		response := fmt.Sprintf(`<html>
+  <body>
+    <h1>Welcome, Chirpy Admin</h1>
+    <p>Chirpy has been visited %v times!</p>
+  </body>
+</html>`, cfg.requestsCount.Load())
+		w.Write(fmt.Append(nil, response))
 	})
 }
 
@@ -46,8 +53,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-	mux.Handle("GET /api/metrics", cfg.logRequestsCount())
-	mux.Handle("POST /api/reset", cfg.resetRequestsCount())
+	mux.Handle("GET /admin/metrics", cfg.logRequestsCount())
+	mux.Handle("POST /admin/reset", cfg.resetRequestsCount())
 
 	server := http.Server{
 		Addr:    ":8080",
