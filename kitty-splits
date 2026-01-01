@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+build_title="chirpy build"
+submit_title="chirpy submit"
+
+build_id=$(kitten @ launch \
+    --location hsplit \
+    --bias 15 \
+    --cwd current \
+    --dont-take-focus \
+    --hold \
+    --title "${build_title}" \
+    watchexec -r -e go -- go run .)
+kitten @ launch \
+    --next-to "id:${build_id}" \
+    --location vsplit \
+    --cwd current \
+    --dont-take-focus \
+    --title "${submit_title}"
