@@ -4,10 +4,14 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"regexp"
 	"unicode/utf8"
 )
 
 const maxChirpLength = 140
+const profaneReplacement = "****"
+
+var profanePattern = regexp.MustCompile(`(?i)(kerfuffle|sharbert|fornax)`)
 
 func validateChirpHandler(w http.ResponseWriter, r *http.Request) {
 	type requestPayload struct {
@@ -15,7 +19,7 @@ func validateChirpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	type responsePayload struct {
-		Valid bool `json:"valid"`
+		CleanedBody string `json:"cleaned_body"`
 	}
 
 	type errorPayload struct {
@@ -34,15 +38,17 @@ func validateChirpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if utf8.RuneCountInString(request.Body) <= maxChirpLength {
-		jsonResponse(w, http.StatusOK, responsePayload{
-			Valid: true,
-		})
-	} else {
+	if utf8.RuneCountInString(request.Body) > maxChirpLength {
 		jsonResponse(w, http.StatusBadRequest, errorPayload{
 			Error: "Chirp is too long",
 		})
+		return
 	}
+
+	cleanedBody := profanePattern.ReplaceAllString(request.Body, profaneReplacement)
+	jsonResponse(w, http.StatusOK, responsePayload{
+		CleanedBody: cleanedBody,
+	})
 }
 
 func jsonResponse(w http.ResponseWriter, status int, payload any) {
