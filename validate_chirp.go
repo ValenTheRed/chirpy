@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"unicode/utf8"
 )
 
 const maxChirpLength = 140
@@ -33,7 +34,7 @@ func validateChirpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(request.Body) <= maxChirpLength {
+	if utf8.RuneCountInString(request.Body) <= maxChirpLength {
 		jsonResponse(w, http.StatusOK, responsePayload{
 			Valid: true,
 		})
