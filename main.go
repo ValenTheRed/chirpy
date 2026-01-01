@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"sync/atomic"
@@ -52,5 +53,6 @@ func main() {
 		Addr:    ":8080",
 		Handler: mux,
 	}
-	server.ListenAndServe()
+	log.Println("server started at localhost:8080")
+	log.Fatal(server.ListenAndServe())
 }
