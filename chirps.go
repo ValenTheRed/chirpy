@@ -111,3 +111,45 @@ func listChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	}
 	jsonResponse(w, http.StatusOK, response)
 }
+
+func getChirpHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	type responsePayload struct {
+		ID        uuid.UUID `json:"id"`
+		UserID    uuid.UUID `json:"user_id"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Body      string    `json:"body"`
+	}
+
+	type errorPayload struct {
+		Error string `json:"error"`
+	}
+
+	chirpID, err := uuid.Parse(r.PathValue("chirpID"))
+	if err != nil {
+		log.Printf("Error in finding chirp ID: %v\n", err)
+		jsonResponse(w, http.StatusBadRequest, errorPayload{
+			Error: "Something went wrong",
+		})
+		return
+	}
+
+	chirp, err := cfg.dbQueries.GetChirp(r.Context(), chirpID)
+	if err != nil {
+		log.Printf("Error retrieving chirp of user: %v\n", err)
+		// NOTE: ideally, should be matching error message and setting
+		// status code basis that.
+		jsonResponse(w, http.StatusNotFound, errorPayload{
+			Error: "Something went wrong",
+		})
+		return
+	}
+
+	jsonResponse(w, http.StatusOK, responsePayload{
+		ID:        chirp.ID,
+		UserID:    chirp.UserID.UUID,
+		Body:      chirp.Body.String,
+		CreatedAt: chirp.CreatedAt.Time,
+		UpdatedAt: chirp.UpdatedAt.Time,
+	})
+}
