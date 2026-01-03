@@ -37,6 +37,11 @@ func (cfg *apiConfig) logRequestsCount(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *apiConfig) resetRequestsCount(w http.ResponseWriter, r *http.Request) {
+	if err := cfg.dbQueries.DeleteAllUsers(r.Context()); err != nil {
+		log.Printf("Error deleting all users: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	cfg.requestsCount.Swap(0)
 	w.Write([]byte("OK"))
 }
@@ -65,8 +70,14 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 	mux.HandleFunc("GET /admin/metrics", cfg.logRequestsCount)
-	mux.HandleFunc("POST /admin/reset", cfg.resetRequestsCount)
+	mux.HandleFunc("POST /admin/reset", enableOnDevEnv(cfg.resetRequestsCount))
 	mux.HandleFunc("POST /api/validate_chirp", validateChirpHandler)
+	mux.HandleFunc(
+		"POST /api/users",
+		func(w http.ResponseWriter, r *http.Request) {
+			usersHandler(&cfg, w, r)
+		},
+	)
 
 	server := http.Server{
 		Addr:    ":8080",
@@ -74,4 +85,14 @@ func main() {
 	}
 	log.Println("server started at localhost:8080")
 	log.Fatal(server.ListenAndServe())
+}
+
+func enableOnDevEnv(handler http.HandlerFunc) http.HandlerFunc {
+	if os.Getenv("PLATFORM") == "DEV" {
+		return handler
+	} else {
+		return func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusForbidden)
+		}
+	}
 }
