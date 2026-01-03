@@ -71,13 +71,8 @@ func main() {
 	})
 	mux.HandleFunc("GET /admin/metrics", cfg.logRequestsCount)
 	mux.HandleFunc("POST /admin/reset", enableOnDevEnv(cfg.resetRequestsCount))
-	mux.HandleFunc("POST /api/validate_chirp", validateChirpHandler)
-	mux.HandleFunc(
-		"POST /api/users",
-		func(w http.ResponseWriter, r *http.Request) {
-			usersHandler(&cfg, w, r)
-		},
-	)
+	mux.HandleFunc("POST /api/chirps", withApiConfig(&cfg, chirpsHandler))
+	mux.HandleFunc("POST /api/users", withApiConfig(&cfg, usersHandler))
 
 	server := http.Server{
 		Addr:    ":8080",
@@ -94,5 +89,14 @@ func enableOnDevEnv(handler http.HandlerFunc) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusForbidden)
 		}
+	}
+}
+
+func withApiConfig(
+	cfg *apiConfig,
+	handler func(cfg *apiConfig, w http.ResponseWriter, r *http.Request),
+) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(cfg, w, r)
 	}
 }
