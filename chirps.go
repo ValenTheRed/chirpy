@@ -18,7 +18,7 @@ const profaneReplacement = "****"
 
 var profanePattern = regexp.MustCompile(`(?i)(kerfuffle|sharbert|fornax)`)
 
-func chirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+func createChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	type requestPayload struct {
 		Body   string        `json:"body"`
 		UserID uuid.NullUUID `json:"user_id"`
@@ -75,4 +75,39 @@ func chirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		CreatedAt: chirp.CreatedAt.Time,
 		UpdatedAt: chirp.UpdatedAt.Time,
 	})
+}
+
+func listChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	type responsePayloadItem struct {
+		ID        uuid.UUID `json:"id"`
+		UserID    uuid.UUID `json:"user_id"`
+		CreatedAt time.Time `json:"created_at"`
+		UpdatedAt time.Time `json:"updated_at"`
+		Body      string    `json:"body"`
+	}
+
+	type errorPayload struct {
+		Error string `json:"error"`
+	}
+
+	chirps, err := cfg.dbQueries.ListChirps(r.Context())
+	if err != nil {
+		log.Printf("Error when retrieving all chirps: %v\n", err)
+		jsonResponse(w, http.StatusInternalServerError, errorPayload{
+			Error: "Something went wrong",
+		})
+		return
+	}
+
+	response := make([]responsePayloadItem, 0, len(chirps))
+	for _, chirp := range chirps {
+		response = append(response, responsePayloadItem{
+			ID:        chirp.ID,
+			UserID:    chirp.UserID.UUID,
+			Body:      chirp.Body.String,
+			CreatedAt: chirp.CreatedAt.Time,
+			UpdatedAt: chirp.UpdatedAt.Time,
+		})
+	}
+	jsonResponse(w, http.StatusOK, response)
 }

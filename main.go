@@ -71,8 +71,9 @@ func main() {
 	})
 	mux.HandleFunc("GET /admin/metrics", cfg.logRequestsCount)
 	mux.HandleFunc("POST /admin/reset", enableOnDevEnv(cfg.resetRequestsCount))
-	mux.HandleFunc("POST /api/chirps", withApiConfig(&cfg, chirpsHandler))
+	mux.HandleFunc("POST /api/chirps", withApiConfig(&cfg, createChirpsHandler))
 	mux.HandleFunc("POST /api/users", withApiConfig(&cfg, usersHandler))
+	mux.HandleFunc("GET /api/chirps", withApiConfig(&cfg, listChirpsHandler))
 
 	server := http.Server{
 		Addr:    ":8080",
