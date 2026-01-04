@@ -23,12 +23,12 @@ func TestValidateJWT(t *testing.T) {
 		{
 			userID:      uuids[0],
 			tokenSecret: defaultHmacKey,
-			expiresIn:   time.Duration(3.6e12), // 1hour
+			expiresIn:   time.Hour,
 		},
 		{
 			userID:      uuids[1],
 			tokenSecret: defaultHmacKey,
-			expiresIn:   time.Duration(-3.6e12), // 1hour before
+			expiresIn:   -time.Hour,
 		},
 	}
 	tokens := make([]string, len(makeJWTArgs))
