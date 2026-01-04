@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"regexp"
-	"time"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
@@ -24,17 +23,7 @@ func createChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request)
 		UserID uuid.NullUUID `json:"user_id"`
 	}
 
-	type responsePayload struct {
-		ID        uuid.UUID `json:"id"`
-		UserID    uuid.UUID `json:"user_id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Body      string    `json:"body"`
-	}
-
-	type errorPayload struct {
-		Error string `json:"error"`
-	}
+	type responsePayload chirp
 
 	request := requestPayload{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -78,17 +67,7 @@ func createChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request)
 }
 
 func listChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
-	type responsePayloadItem struct {
-		ID        uuid.UUID `json:"id"`
-		UserID    uuid.UUID `json:"user_id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Body      string    `json:"body"`
-	}
-
-	type errorPayload struct {
-		Error string `json:"error"`
-	}
+	type responsePayloadItem chirp
 
 	chirps, err := cfg.dbQueries.ListChirps(r.Context())
 	if err != nil {
@@ -113,17 +92,7 @@ func listChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 }
 
 func getChirpHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
-	type responsePayload struct {
-		ID        uuid.UUID `json:"id"`
-		UserID    uuid.UUID `json:"user_id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Body      string    `json:"body"`
-	}
-
-	type errorPayload struct {
-		Error string `json:"error"`
-	}
+	type responsePayload chirp
 
 	chirpID, err := uuid.Parse(r.PathValue("chirpID"))
 	if err != nil {

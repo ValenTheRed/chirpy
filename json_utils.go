@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+type errorPayload struct {
+	Error string `json:"error"`
+}
+
 func jsonResponse(w http.ResponseWriter, status int, payload any) {
 	response, err := json.Marshal(payload)
 	if err != nil {

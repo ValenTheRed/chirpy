@@ -1,31 +1,22 @@
 package main
 
 import (
+	"ValenTheRed/chirpy/internal/auth"
+	"ValenTheRed/chirpy/internal/database"
 	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 func usersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	type requestPayload struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	// NOTE: follows the generated model database.User
-	type responsePayload struct {
-		ID        uuid.UUID `json:"id"`
-		CreatedAt time.Time `json:"created_at"`
-		UpdatedAt time.Time `json:"updated_at"`
-		Email     string    `json:"email"`
-	}
-
-	type errorPayload struct {
-		Error string `json:"error"`
-	}
+	type responsePayload user
 
 	request := requestPayload{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -36,9 +27,21 @@ func usersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := cfg.dbQueries.CreateUser(r.Context(), sql.NullString{
-		Valid:  true,
-		String: request.Email,
+	hashed_password, err := auth.HashPassword(request.Password)
+	if err != nil {
+		log.Printf("Error hashing user's password: %v\n", err)
+		jsonResponse(w, http.StatusInternalServerError, errorPayload{
+			Error: "Something went wrong",
+		})
+		return
+	}
+
+	user, err := cfg.dbQueries.CreateUser(r.Context(), database.CreateUserParams{
+		Email: sql.NullString{
+			Valid:  true,
+			String: request.Email,
+		},
+		HashedPassword: hashed_password,
 	})
 	if err != nil {
 		log.Printf("Error creating user: %v\n", err)
