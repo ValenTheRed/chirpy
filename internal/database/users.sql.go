@@ -46,15 +46,21 @@ func (q *Queries) DeleteAllUsers(ctx context.Context) error {
 	return err
 }
 
-const getUsersHashedPassword = `-- name: GetUsersHashedPassword :one
-select hashed_password
+const getUser = `-- name: GetUser :one
+select id, created_at, updated_at, email, hashed_password
 from users
 where email = $1
 `
 
-func (q *Queries) GetUsersHashedPassword(ctx context.Context, email sql.NullString) (string, error) {
-	row := q.db.QueryRowContext(ctx, getUsersHashedPassword, email)
-	var hashed_password string
-	err := row.Scan(&hashed_password)
-	return hashed_password, err
+func (q *Queries) GetUser(ctx context.Context, email sql.NullString) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUser, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.HashedPassword,
+	)
+	return i, err
 }

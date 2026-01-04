@@ -9,7 +9,7 @@ delete from users
 
 returning *;
 
--- name: GetUsersHashedPassword :one
-select hashed_password
+-- name: GetUser :one
+select *
 from users
 where email = $1;
