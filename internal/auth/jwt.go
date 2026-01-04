@@ -34,15 +34,15 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 		jwt.WithValidMethods([]string{signingMethod.Alg()}),
 	)
 	if err != nil {
-		return uuid.UUID([16]byte{}), err
+		return uuid.Nil, err
 	}
 	userIDString, err := token.Claims.GetSubject()
 	if err != nil {
-		return uuid.UUID([16]byte{}), err
+		return uuid.Nil, err
 	}
 	userID, err := uuid.Parse(userIDString)
 	if err != nil {
-		return uuid.UUID([16]byte{}), err
+		return uuid.Nil, err
 	}
 	return userID, nil
 }
