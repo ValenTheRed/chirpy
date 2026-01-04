@@ -23,10 +23,16 @@ func usersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		Email     string    `json:"email"`
 	}
 
+	type errorPayload struct {
+		Error string `json:"error"`
+	}
+
 	request := requestPayload{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		log.Printf("Error decoding request body: %v\n", err)
-		// NOTE: no error repsonse
+		jsonResponse(w, http.StatusInternalServerError, errorPayload{
+			Error: "Something went wrong",
+		})
 		return
 	}
 
@@ -36,7 +42,9 @@ func usersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		log.Printf("Error creating user: %v\n", err)
-		// NOTE: no error repsonse
+		jsonResponse(w, http.StatusInternalServerError, errorPayload{
+			Error: "Something went wrong",
+		})
 		return
 	}
 
