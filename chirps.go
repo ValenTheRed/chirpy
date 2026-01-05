@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ValenTheRed/chirpy/internal/auth"
 	"ValenTheRed/chirpy/internal/database"
 	"database/sql"
 	"encoding/json"
@@ -19,11 +20,27 @@ var profanePattern = regexp.MustCompile(`(?i)(kerfuffle|sharbert|fornax)`)
 
 func createChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	type requestPayload struct {
-		Body   string        `json:"body"`
-		UserID uuid.NullUUID `json:"user_id"`
+		Body string `json:"body"`
 	}
 
 	type responsePayload chirp
+
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		log.Printf("Error in getting token from header: %v\n", err)
+		jsonResponse(w, http.StatusUnauthorized, errorPayload{
+			Error: "Unauthorized",
+		})
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.tokenSecret)
+	if err != nil {
+		log.Printf("Error in validating token: %v\n", err)
+		jsonResponse(w, http.StatusUnauthorized, errorPayload{
+			Error: "Unauthorized",
+		})
+		return
+	}
 
 	request := requestPayload{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -47,7 +64,10 @@ func createChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request)
 			Valid:  true,
 			String: cleanedBody,
 		},
-		UserID: request.UserID,
+		UserID: uuid.NullUUID{
+			UUID:  userID,
+			Valid: true,
+		},
 	})
 	if err != nil {
 		log.Printf("Error writing chirp: %v\n", err)

@@ -6,17 +6,22 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 )
 
 const unauthorizedLoginErrorMessage = "Incorrect email or password"
 
 func loginHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	type requestPayload struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
+		Email            string         `json:"email"`
+		Password         string         `json:"password"`
+		ExpiresInSeconds *time.Duration `json:"expires_in_seconds"`
 	}
 
-	type responsePayload user
+	type responsePayload struct {
+		user
+		Token string `json:"token"`
+	}
 
 	request := requestPayload{}
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
@@ -27,7 +32,7 @@ func loginHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := cfg.dbQueries.GetUser(r.Context(), sql.NullString{
+	requester, err := cfg.dbQueries.GetUser(r.Context(), sql.NullString{
 		Valid:  true,
 		String: request.Email,
 	})
@@ -41,7 +46,7 @@ func loginHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 
 	if match, err := auth.CheckPasswordHash(
 		request.Password,
-		user.HashedPassword,
+		requester.HashedPassword,
 	); err != nil {
 		log.Printf("Error in comparing hashed_password and password: %v\n", err)
 		jsonResponse(w, http.StatusUnauthorized, errorPayload{
@@ -56,10 +61,28 @@ func loginHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var expiresIn time.Duration
+	if request.ExpiresInSeconds == nil || *request.ExpiresInSeconds > time.Hour {
+		expiresIn = time.Hour
+	} else {
+		expiresIn = *request.ExpiresInSeconds
+	}
+	token, err := auth.MakeJWT(requester.ID, cfg.tokenSecret, expiresIn)
+	if err != nil {
+		log.Printf("Error in JWT token creation: %v\n", err)
+		jsonResponse(w, http.StatusUnauthorized, errorPayload{
+			Error: unauthorizedLoginErrorMessage,
+		})
+		return
+	}
+
 	jsonResponse(w, http.StatusOK, responsePayload{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt.Time,
-		UpdatedAt: user.UpdatedAt.Time,
-		Email:     user.Email.String,
+		user: user{
+			ID:        requester.ID,
+			CreatedAt: requester.CreatedAt.Time,
+			UpdatedAt: requester.UpdatedAt.Time,
+			Email:     requester.Email.String,
+		},
+		Token: token,
 	})
 }

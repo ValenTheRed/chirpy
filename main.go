@@ -16,6 +16,7 @@ import (
 type apiConfig struct {
 	requestsCount atomic.Int64
 	dbQueries     *database.Queries
+	tokenSecret   string
 }
 
 func (cfg *apiConfig) increaseRequestsCount(handler http.Handler) http.Handler {
@@ -48,14 +49,17 @@ func (cfg *apiConfig) resetRequestsCount(w http.ResponseWriter, r *http.Request)
 
 func main() {
 	godotenv.Load()
+
 	dbUrl := os.Getenv("DB_URL")
 	db, err := sql.Open("postgres", dbUrl)
 	if err != nil {
 		log.Fatalf("could not connect to db at %v\n", dbUrl)
 	}
+	tokenSecret := os.Getenv("TOKEN_SECRET")
 
 	cfg := apiConfig{
-		dbQueries: database.New(db),
+		dbQueries:   database.New(db),
+		tokenSecret: tokenSecret,
 	}
 	root := os.DirFS(".")
 
