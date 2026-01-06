@@ -51,7 +51,7 @@ func loginHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		request.Password,
 		requester.HashedPassword,
 	); err != nil {
-		log.Printf("Error in comparing hashed_password and password: %v\n", err)
+		log.Printf("Error in comparing hashed password and password: %v\n", err)
 		jsonResponse(w, http.StatusUnauthorized, errorPayload{
 			Error: unauthorizedLoginErrorMessage,
 		})

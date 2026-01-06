@@ -27,7 +27,7 @@ func usersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashed_password, err := auth.HashPassword(request.Password)
+	hashedPassword, err := auth.HashPassword(request.Password)
 	if err != nil {
 		log.Printf("Error hashing user's password: %v\n", err)
 		jsonResponse(w, http.StatusInternalServerError, errorPayload{
@@ -41,7 +41,7 @@ func usersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 			Valid:  true,
 			String: request.Email,
 		},
-		HashedPassword: hashed_password,
+		HashedPassword: hashedPassword,
 	})
 	if err != nil {
 		log.Printf("Error creating user: %v\n", err)
