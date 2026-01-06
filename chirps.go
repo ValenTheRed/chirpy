@@ -153,14 +153,13 @@ func deleteChirpHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) 
 	userID, err := auth.ValidateJWT(token, cfg.tokenSecret)
 	if err != nil {
 		log.Printf("DELETE chirp: error in validating JWT token: %v\n", err)
-		w.WriteHeader(http.StatusForbidden)
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 	chirpID, err := uuid.Parse(r.PathValue("chirpID"))
 	if err != nil {
 		log.Printf("DELETE chirp: error while parsing chirp ID: %v\n", err)
-		// TODO: correct code to send for tests????
-		w.WriteHeader(http.StatusForbidden)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
