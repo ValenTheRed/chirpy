@@ -142,3 +142,40 @@ func getChirpHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		UpdatedAt: chirp.UpdatedAt.Time,
 	})
 }
+
+func deleteChirpHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		log.Printf("DELETE chirp: error in getting token from authorization: %v\n", err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	userID, err := auth.ValidateJWT(token, cfg.tokenSecret)
+	if err != nil {
+		log.Printf("DELETE chirp: error in validating JWT token: %v\n", err)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	chirpID, err := uuid.Parse(r.PathValue("chirpID"))
+	if err != nil {
+		log.Printf("DELETE chirp: error while parsing chirp ID: %v\n", err)
+		// TODO: correct code to send for tests????
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	chirpsDeleted, err := cfg.dbQueries.DeleteChirp(r.Context(), database.DeleteChirpParams{
+		ID: chirpID,
+		UserID: uuid.NullUUID{
+			UUID:  userID,
+			Valid: true,
+		},
+	})
+	if err != nil || chirpsDeleted == 0 {
+		log.Printf("DELETE chirp: error in deleting chirp: %v\n", err)
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
