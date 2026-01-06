@@ -77,6 +77,8 @@ func main() {
 	mux.HandleFunc("POST /admin/reset", enableOnDevEnv(cfg.resetRequestsCount))
 
 	mux.HandleFunc("POST /api/login", withApiConfig(&cfg, loginHandler))
+	mux.HandleFunc("POST /api/refresh", withApiConfig(&cfg, refreshHandler))
+	mux.HandleFunc("POST /api/revoke", withApiConfig(&cfg, revokeHandler))
 
 	mux.HandleFunc("POST /api/users", withApiConfig(&cfg, usersHandler))
 
