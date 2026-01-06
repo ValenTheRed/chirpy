@@ -52,10 +52,11 @@ func usersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	}
 
 	jsonResponse(w, http.StatusCreated, responsePayload{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt.Time,
-		UpdatedAt: user.UpdatedAt.Time,
-		Email:     user.Email.String,
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt.Time,
+		UpdatedAt:   user.UpdatedAt.Time,
+		Email:       user.Email.String,
+		IsChirpyRed: user.IsChirpyRed.Bool,
 	})
 }
 
@@ -118,9 +119,10 @@ func updateUsersHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) 
 	}
 
 	jsonResponse(w, http.StatusOK, responsePayload{
-		ID:        userID,
-		Email:     request.Email,
-		UpdatedAt: user.UpdatedAt.Time,
-		CreatedAt: user.CreatedAt.Time,
+		ID:          userID,
+		Email:       request.Email,
+		UpdatedAt:   user.UpdatedAt.Time,
+		CreatedAt:   user.CreatedAt.Time,
+		IsChirpyRed: user.IsChirpyRed.Bool,
 	})
 }
