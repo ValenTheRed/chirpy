@@ -17,6 +17,7 @@ type apiConfig struct {
 	requestsCount atomic.Int64
 	dbQueries     *database.Queries
 	tokenSecret   string
+	polkaApiKey   string
 }
 
 func (cfg *apiConfig) increaseRequestsCount(handler http.Handler) http.Handler {
@@ -55,11 +56,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("could not connect to db at %v\n", dbUrl)
 	}
-	tokenSecret := os.Getenv("TOKEN_SECRET")
 
 	cfg := apiConfig{
 		dbQueries:   database.New(db),
-		tokenSecret: tokenSecret,
+		tokenSecret: os.Getenv("TOKEN_SECRET"),
+		polkaApiKey: os.Getenv("POLKA_KEY"),
 	}
 	root := os.DirFS(".")
 
