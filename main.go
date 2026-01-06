@@ -81,6 +81,7 @@ func main() {
 	mux.HandleFunc("POST /api/revoke", withApiConfig(&cfg, revokeHandler))
 
 	mux.HandleFunc("POST /api/users", withApiConfig(&cfg, usersHandler))
+	mux.HandleFunc("PUT /api/users", withApiConfig(&cfg, updateUsersHandler))
 
 	mux.HandleFunc("POST /api/chirps", withApiConfig(&cfg, createChirpsHandler))
 	mux.HandleFunc("GET /api/chirps", withApiConfig(&cfg, listChirpsHandler))
