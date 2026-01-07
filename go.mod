@@ -1,4 +1,4 @@
-module ValenTheRed/chirpy
+module github.com/ValenTheRed/chirpy
 
 go 1.25.4
 
