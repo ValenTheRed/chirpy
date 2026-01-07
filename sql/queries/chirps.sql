@@ -4,7 +4,7 @@ values (gen_random_uuid(), now(), now(), $1, $2)
 
 returning *;
 
--- name: ListChirps :many
+-- name: GetAllChirps :many
 select *
 from chirps
 order by created_at;
@@ -17,3 +17,9 @@ where id = $1;
 -- name: DeleteChirp :execrows
 delete from chirps
 where user_id = $1 and id = $2;
+
+-- name: GetUsersChirps :many
+select *
+from chirps
+where user_id = $1
+order by created_at;

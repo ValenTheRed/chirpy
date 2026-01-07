@@ -5,6 +5,7 @@ import (
 	"ValenTheRed/chirpy/internal/database"
 	"database/sql"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"regexp"
@@ -89,12 +90,32 @@ func createChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request)
 func listChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 	type responsePayloadItem chirp
 
-	chirps, err := cfg.dbQueries.ListChirps(r.Context())
-	if err != nil {
-		log.Printf("Error when retrieving all chirps: %v\n", err)
-		jsonResponse(w, http.StatusInternalServerError, errorPayload{
-			Error: "Something went wrong",
+	authorIDString := r.URL.Query().Get("author_id")
+
+	var (
+		chirps []database.Chirp
+		err    error
+	)
+	if len(authorIDString) > 0 {
+		var authorID uuid.UUID
+		authorID, err = uuid.Parse(authorIDString)
+		if err != nil {
+			log.Printf("GET chirps: error in parsing author ID: %v\n", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		chirps, err = cfg.dbQueries.GetUsersChirps(r.Context(), uuid.NullUUID{
+			UUID:  authorID,
+			Valid: true,
 		})
+		fmt.Printf("chirps: %v\n", chirps)
+		fmt.Printf("authorID: %v\n", authorID)
+	} else {
+		chirps, err = cfg.dbQueries.GetAllChirps(r.Context())
+	}
+	if err != nil {
+		log.Printf("GET chirps: error when retrieving all chirps: %v\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
