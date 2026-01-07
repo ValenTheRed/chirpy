@@ -9,13 +9,19 @@ import (
 	"log"
 	"net/http"
 	"regexp"
+	"slices"
 	"unicode/utf8"
 
 	"github.com/google/uuid"
 )
 
-const maxChirpLength = 140
-const profaneReplacement = "****"
+const (
+	maxChirpLength     = 140
+	profaneReplacement = "****"
+
+	ascendingSort  = "asc"
+	descendingSort = "desc"
+)
 
 var profanePattern = regexp.MustCompile(`(?i)(kerfuffle|sharbert|fornax)`)
 
@@ -117,6 +123,13 @@ func listChirpsHandler(cfg *apiConfig, w http.ResponseWriter, r *http.Request) {
 		log.Printf("GET chirps: error when retrieving all chirps: %v\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
+	}
+
+	sort := r.URL.Query().Get("sort")
+	if sort == "desc" {
+		slices.SortFunc(chirps, func(a, b database.Chirp) int {
+			return int(b.CreatedAt.Time.Sub(a.CreatedAt.Time))
+		})
 	}
 
 	response := make([]responsePayloadItem, 0, len(chirps))
